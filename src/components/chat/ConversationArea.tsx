@@ -272,7 +272,6 @@ const ConversationArea: React.FC = () => {
       const token = localStorage.getItem("authToken");
 
       try {
-        console.log(userMessage.content);
         const response = await fetch(`${API_URL}/api/chat`, {
           method: "POST",
           headers: {
@@ -289,7 +288,6 @@ const ConversationArea: React.FC = () => {
         }
 
         const data = await response.json();
-        console.log(data);
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           content: data.message,

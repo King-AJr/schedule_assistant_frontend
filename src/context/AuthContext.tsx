@@ -78,7 +78,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.error("Invalid credentials");
         return;
       }
-      console.log(response);
   
       if (!response.ok) {
         const errorData = await response.json();
