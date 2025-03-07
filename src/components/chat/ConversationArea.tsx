@@ -48,7 +48,7 @@ interface Message {
 }
 
 // API endpoint for chat messages
-const API_URL = "http://127.0.0.1:8000"; // Replace with your actual API URL
+const API_URL = import.meta.env.VITE_API_URL; // Replace hardcoded URL
 
 const ConversationArea: React.FC = () => {
   const { user, isAuthenticated } = useAuth();

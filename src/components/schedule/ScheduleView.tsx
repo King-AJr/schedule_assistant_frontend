@@ -22,7 +22,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format, startOfToday, endOfToday, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 
 // API endpoint for schedule events
-const API_URL = "http://127.0.0.1:8000"; // Replace with your actual API URL
+const API_URL = import.meta.env.VITE_API_URL; // Replace hardcoded URL
 
 interface ScheduleItem {
   id: string;

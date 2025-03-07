@@ -19,7 +19,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = "http://127.0.0.1:8000"; // Replace with your actual API URL when deploying
+const API_URL = import.meta.env.VITE_API_URL; // Replace hardcoded URL
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User>(null);
@@ -72,9 +72,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
         body: JSON.stringify({ email, password }),
       });
+
+  
+      if (response.status == 401) {
+        toast.error("Invalid credentials");
+        return;
+      }
+      console.log(response);
   
       if (!response.ok) {
         const errorData = await response.json();
+
         throw new Error(errorData.message || "Login failed");
       }
   
@@ -104,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // localStorage.setItem("authToken", mockToken);
       // localStorage.setItem("user", JSON.stringify(mockUser));
       // setUser(mockUser);
-      toast.success("An error occurred, contact Admin");
+      toast.success("Invalid credentials");
     } finally {
       setIsLoading(false);
     }
