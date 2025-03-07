@@ -19,7 +19,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = "http://127.0.0.1:8000"; // Replace with your actual API URL when deploying
+const API_URL = import.meta.env.VITE_API_URL; // Replace with your actual API URL when deploying
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User>(null);
@@ -104,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // localStorage.setItem("authToken", mockToken);
       // localStorage.setItem("user", JSON.stringify(mockUser));
       // setUser(mockUser);
-      toast.success("Successfully signed in with mock implementation!");
+      toast.success("Sorry there was an error, contact Admin");
     } finally {
       setIsLoading(false);
     }
