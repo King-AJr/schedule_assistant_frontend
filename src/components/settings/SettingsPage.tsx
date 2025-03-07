@@ -262,7 +262,7 @@ const SettingsPage: React.FC = () => {
                     
                     <div className="pt-4 border-t border-white/10">
                       <div className="text-sm text-muted-foreground">
-                        © 2023 AI Schedule Assistant. All rights reserved.
+                        © 2025 AI Schedule Assistant. All rights reserved.
                       </div>
                     </div>
                   </div>

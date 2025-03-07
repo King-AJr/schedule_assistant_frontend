@@ -166,7 +166,7 @@ const Index = () => {
           animate="visible"
         >
           <div className="text-sm text-muted-foreground">
-            © 2023 AI Schedule Assistant. All rights reserved.
+            © 2025 AI Schedule Assistant. All rights reserved.
           </div>
           
           <div className="flex gap-4 text-sm">
