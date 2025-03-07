@@ -179,6 +179,7 @@ const ScheduleView: React.FC = () => {
         setTotalEvents(transformedEvents.length);
         
       } catch (error) {
+        toast.success("An error occurred, contact Admin");
         console.error("API call failed:", error);
         
         // Mock implementation for development/demo
@@ -186,53 +187,10 @@ const ScheduleView: React.FC = () => {
         
         // Simulate delay
         await new Promise(resolve => setTimeout(resolve, 1000));
+  
         
-        // Ensure mock data matches the ScheduleItem interface
-        const mockScheduleItems: ScheduleItem[] = [
-          {
-            id: "1",
-            title: "Team Meeting",
-            date: "Today",
-            time: "10:00 AM - 11:30 AM",
-            location: "Conference Room B",
-            attendees: 5,
-            priority: "medium",
-            type: "meeting",
-          },
-          {
-            id: "2",
-            title: "Lunch with Alex",
-            date: "Today",
-            time: "12:30 PM - 1:30 PM",
-            location: "Bistro Garden",
-            attendees: 2,
-            priority: "low",
-            type: "personal",
-          },
-          {
-            id: "3",
-            title: "Project Deadline",
-            date: "Tomorrow",
-            time: "5:00 PM",
-            location: "",
-            attendees: 0,
-            priority: "high",
-            type: "deadline",
-          },
-          {
-            id: "4",
-            title: "Dental Appointment",
-            date: timeRange === "month" ? "Aug 15" : "Next week",
-            time: "2:00 PM",
-            location: "City Dental Clinic",
-            attendees: 1,
-            priority: "medium",
-            type: "appointment",
-          },
-        ];
-        
-        setScheduleItems(mockScheduleItems);
-        setTotalEvents(12); // Mock total events count
+        setScheduleItems([]);
+        setTotalEvents(0); // Mock total events count
       }
       
     } catch (error) {

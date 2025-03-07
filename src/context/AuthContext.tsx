@@ -104,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // localStorage.setItem("authToken", mockToken);
       // localStorage.setItem("user", JSON.stringify(mockUser));
       // setUser(mockUser);
-      toast.success("Successfully signed in with mock implementation!");
+      toast.success("An error occurred, contact Admin");
     } finally {
       setIsLoading(false);
     }
