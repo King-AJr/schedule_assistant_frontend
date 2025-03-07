@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Send, Mic, MicOff, User2, Volume2, VolumeX } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import logger from '@/lib/logger';
 
 // Add TypeScript declarations for SpeechRecognition 
 interface SpeechRecognitionEvent extends Event {
@@ -49,7 +48,7 @@ interface Message {
 }
 
 // API endpoint for chat messages
-const API_URL = import.meta.env.VITE_API_URL;// Replace with your actual API URL
+const API_URL = "http://127.0.0.1:8000"; // Replace with your actual API URL
 
 const ConversationArea: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -136,7 +135,7 @@ const ConversationArea: React.FC = () => {
           setMessages(formattedMessages);
         }
       } catch (error) {
-        logger.error("Failed to fetch messages:", { error });
+        console.error("Failed to fetch messages:", error);
         toast.error("Failed to load previous messages");
         setMessages([{
           id: "1",
@@ -181,7 +180,7 @@ const ConversationArea: React.FC = () => {
       };
   
       recognitionRef.current.onerror = (event) => {
-        logger.error('Speech recognition error:', { error: event.error });
+        console.error('Speech recognition error', event.error);
         isListeningRef.current = false;
         setIsListening(false);
         if (event.error === 'not-allowed') {
@@ -230,7 +229,7 @@ const ConversationArea: React.FC = () => {
         setInput('');
       }
     } catch (error) {
-      logger.error('Microphone access error:', { error });
+      console.error('Microphone access error:', error);
       toast.error('Could not access microphone. Please check permissions.');
     }
   };
@@ -302,7 +301,7 @@ const ConversationArea: React.FC = () => {
         speakText(data.message);
         
       } catch (error) {
-        logger.error('API call failed:', { error });
+        console.error("API call failed:", error);
         
         // Mock implementation for development/demo
         setTimeout(() => {
@@ -320,7 +319,7 @@ const ConversationArea: React.FC = () => {
         }, 1500);
       }
     } catch (error) {
-      logger.error('Error sending message:', { error });
+      console.error("Error sending message:", error);
       toast.error("Failed to send message. Please try again.");
     } finally {
       setIsTyping(false);

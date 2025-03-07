@@ -20,10 +20,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format, startOfToday, endOfToday, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
-import logger from '@/lib/logger';
 
 // API endpoint for schedule events
-const API_URL = import.meta.env.VITE_API_URL;// Replace with your actual API URL
+const API_URL = "http://127.0.0.1:8000"; // Replace with your actual API URL
 
 interface ScheduleItem {
   id: string;
@@ -180,12 +179,64 @@ const ScheduleView: React.FC = () => {
         setTotalEvents(transformedEvents.length);
         
       } catch (error) {
-        logger.error('API call failed:', { error });
-        toast.error("Sorry there was an error, contact Admin");
+        console.error("API call failed:", error);
+        
+        // Mock implementation for development/demo
+        console.log("Using mock schedule data");
+        
+        // Simulate delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Ensure mock data matches the ScheduleItem interface
+        const mockScheduleItems: ScheduleItem[] = [
+          {
+            id: "1",
+            title: "Team Meeting",
+            date: "Today",
+            time: "10:00 AM - 11:30 AM",
+            location: "Conference Room B",
+            attendees: 5,
+            priority: "medium",
+            type: "meeting",
+          },
+          {
+            id: "2",
+            title: "Lunch with Alex",
+            date: "Today",
+            time: "12:30 PM - 1:30 PM",
+            location: "Bistro Garden",
+            attendees: 2,
+            priority: "low",
+            type: "personal",
+          },
+          {
+            id: "3",
+            title: "Project Deadline",
+            date: "Tomorrow",
+            time: "5:00 PM",
+            location: "",
+            attendees: 0,
+            priority: "high",
+            type: "deadline",
+          },
+          {
+            id: "4",
+            title: "Dental Appointment",
+            date: timeRange === "month" ? "Aug 15" : "Next week",
+            time: "2:00 PM",
+            location: "City Dental Clinic",
+            attendees: 1,
+            priority: "medium",
+            type: "appointment",
+          },
+        ];
+        
+        setScheduleItems(mockScheduleItems);
+        setTotalEvents(12); // Mock total events count
       }
       
     } catch (error) {
-      logger.error('Error fetching schedule:', { error });
+      console.error("Error fetching schedule:", error);
       toast.error("Failed to load schedule data. Please try again.");
       setScheduleItems([]);
     } finally {

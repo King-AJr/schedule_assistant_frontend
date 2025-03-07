@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import logger from '@/lib/logger';
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -26,7 +25,7 @@ const SignIn: React.FC = () => {
       await login(email, password);
       navigate("/dashboard");
     } catch (err: any) {
-      logger.error('Sign in error:', { error: err });
+      console.error("Sign in error:", err);
       const errorMessage = err?.message || "Invalid credentials. Please try again.";
       setError(errorMessage);
       toast.error(errorMessage);
