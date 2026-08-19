@@ -1,10 +1,16 @@
-type PostHogLike = Array<unknown> & {
-  init?: (key: string, config: Record<string, unknown>) => void;
+type Queue = unknown[];
+
+type PostHogLike = Queue & {
+  _i?: unknown[];
+  __SV?: number;
+  init?: (key: string, config: Record<string, unknown>, name?: string) => void;
   capture?: (event: string, properties?: Record<string, unknown>) => void;
   identify?: (distinctId: string, properties?: Record<string, unknown>) => void;
   reset?: () => void;
   get_session_id?: () => string;
   startSessionRecording?: () => void;
+  people?: Queue;
+  [key: string]: unknown;
 };
 
 declare global {
@@ -16,35 +22,47 @@ declare global {
 
 const SESSION_HEADER = "X-EA-Session-ID";
 const MAX_ERROR = 500;
+const POSTHOG_METHODS = [
+  "capture",
+  "identify",
+  "reset",
+  "get_session_id",
+  "startSessionRecording",
+] as const;
 
 function posthogHost(): string {
   return (import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.com").replace(/\/$/, "");
 }
 
-function installPostHogLoader(host: string): PostHogLike {
-  if (window.posthog) return window.posthog;
+function stub(target: PostHogLike, method: string): void {
+  target[method] = (...args: unknown[]) => target.push([method, ...args]);
+}
 
-  const queue = [] as unknown as PostHogLike;
-  const methods = [
-    "capture",
-    "identify",
-    "reset",
-    "get_session_id",
-    "startSessionRecording",
-  ];
-  for (const method of methods) {
-    (queue as unknown as Record<string, unknown>)[method] = (...args: unknown[]) => {
-      queue.push([method, ...args]);
-    };
-  }
-  window.posthog = queue;
+function installPostHogLoader(): PostHogLike {
+  if (window.posthog?.__SV) return window.posthog;
 
-  const script = document.createElement("script");
-  script.async = true;
-  script.crossOrigin = "anonymous";
-  script.src = `${host.replace(".i.posthog.com", "-assets.i.posthog.com")}/static/array.js`;
-  document.head.appendChild(script);
-  return queue;
+  const root = (window.posthog || []) as PostHogLike;
+  window.posthog = root;
+  root._i = root._i || [];
+  root.__SV = 1;
+
+  root.init = (key: string, config: Record<string, unknown>, name?: string) => {
+    const instance = (name ? ((root[name] = []) as PostHogLike) : root) as PostHogLike;
+    instance.people = instance.people || [];
+    POSTHOG_METHODS.forEach((method) => stub(instance, method));
+
+    const script = document.createElement("script");
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    const host = String(config.api_host || posthogHost());
+    script.src = `${host.replace(".i.posthog.com", "-assets.i.posthog.com")}/static/array.js`;
+    const first = document.getElementsByTagName("script")[0];
+    if (first?.parentNode) first.parentNode.insertBefore(script, first);
+    else document.head.appendChild(script);
+
+    root._i!.push([key, config, name]);
+  };
+  return root;
 }
 
 export function getReplaySessionId(): string | null {
@@ -61,11 +79,9 @@ function identifyStoredUser(): void {
     const raw = localStorage.getItem("user");
     if (!raw) return;
     const user = JSON.parse(raw) as { id?: unknown };
-    if (typeof user.id === "string" && user.id) {
-      window.posthog?.identify?.(user.id);
-    }
+    if (typeof user.id === "string" && user.id) window.posthog?.identify?.(user.id);
   } catch {
-    // Observability is never allowed to break the application.
+    // Observability must never affect application availability.
   }
 }
 
@@ -82,17 +98,15 @@ export function initBrowserObservability(): void {
   const key = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
   if (!key) return;
 
-  const host = posthogHost();
-  const posthog = installPostHogLoader(host);
-  posthog.init = posthog.init || ((...args: unknown[]) => posthog.push(["init", ...args]));
-  posthog.init(key, {
-    api_host: host,
+  const posthog = installPostHogLoader();
+  posthog.init?.(key, {
+    api_host: posthogHost(),
     person_profiles: "identified_only",
     capture_pageview: true,
     capture_pageleave: true,
     disable_session_recording: false,
-    // Inputs are always masked. Masking all page text defaults on and can only
-    // be relaxed deliberately for a controlled debugging environment.
+    // Inputs stay masked. Full-page text also defaults to masked; an operator may
+    // deliberately set VITE_POSTHOG_MASK_ALL_TEXT=false for a controlled test.
     mask_all_text: import.meta.env.VITE_POSTHOG_MASK_ALL_TEXT !== "false",
     session_recording: {
       maskAllInputs: true,
@@ -101,8 +115,12 @@ export function initBrowserObservability(): void {
   posthog.startSessionRecording?.();
   identifyStoredUser();
 
-  window.addEventListener("error", (event) => captureFrontendError("window_error", event.error || event.message));
-  window.addEventListener("unhandledrejection", (event) => captureFrontendError("unhandled_rejection", event.reason));
+  window.addEventListener("error", (event) =>
+    captureFrontendError("window_error", event.error || event.message),
+  );
+  window.addEventListener("unhandledrejection", (event) =>
+    captureFrontendError("unhandled_rejection", event.reason),
+  );
 }
 
 function apiOrigin(): string | null {
@@ -117,8 +135,7 @@ function apiOrigin(): string | null {
 
 function requestUrl(input: RequestInfo | URL): URL | null {
   try {
-    if (input instanceof Request) return new URL(input.url, window.location.origin);
-    return new URL(String(input), window.location.origin);
+    return new URL(input instanceof Request ? input.url : String(input), window.location.origin);
   } catch {
     return null;
   }
@@ -136,7 +153,7 @@ async function updateIdentityFromResponse(url: URL, response: Response): Promise
     const id = data?.user_id ?? data?.user?.id;
     if (typeof id === "string" && id) window.posthog?.identify?.(id);
   } catch {
-    // Identity enrichment is optional and must not affect auth/network behavior.
+    // Identity enrichment is optional.
   }
 }
 
@@ -158,11 +175,12 @@ export function installObservedFetch(): void {
     if (sessionId) headers.set(SESSION_HEADER, sessionId);
 
     const started = performance.now();
+    const method = init?.method || (input instanceof Request ? input.method : "GET");
     try {
       const response = await nativeFetch(input, { ...init, headers });
       window.posthog?.capture?.("ea_api_request", {
         path: url.pathname,
-        method: init?.method || (input instanceof Request ? input.method : "GET"),
+        method,
         status: response.status,
         duration_ms: Math.round(performance.now() - started),
       });
@@ -171,7 +189,7 @@ export function installObservedFetch(): void {
     } catch (error) {
       window.posthog?.capture?.("ea_api_request_failed", {
         path: url.pathname,
-        method: init?.method || (input instanceof Request ? input.method : "GET"),
+        method,
         duration_ms: Math.round(performance.now() - started),
         error_class: error instanceof Error ? error.name : "unknown",
       });
