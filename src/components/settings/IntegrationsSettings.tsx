@@ -118,8 +118,9 @@ const IntegrationsSettings: React.FC = () => {
     void refresh();
     const params = new URLSearchParams(window.location.search);
     const connected = params.get("connected");
-    if (connected === "mcp" || connected === "github") {
-      toast({ title: `${connected === "mcp" ? "MCP" : "GitHub"} connected` });
+    if (connected === "mcp" || connected === "github" || connected === "google") {
+      const label = connected === "mcp" ? "MCP" : connected === "github" ? "GitHub" : "Google";
+      toast({ title: `${label} connected` });
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, [refresh, toast]);
@@ -266,16 +267,16 @@ const IntegrationsSettings: React.FC = () => {
     }
   };
 
-  const connectGithub = async () => {
-    setBusy("github");
+  const connectProvider = async (provider: "github" | "google") => {
+    setBusy(provider);
     try {
-      const result = await apiFetch<{ authorization_url: string }>("/integrations/github/auth-url", {
+      const result = await apiFetch<{ authorization_url: string }>(`/integrations/${provider}/auth-url`, {
         method: "POST",
       });
       window.location.assign(result.authorization_url);
     } catch (error) {
       toast({
-        title: "Could not start GitHub connection",
+        title: `Could not start ${provider === "github" ? "GitHub" : "Google"} connection`,
         description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
@@ -333,9 +334,17 @@ const IntegrationsSettings: React.FC = () => {
               <p className="mt-1 text-sm text-muted-foreground">{integration.description}</p>
             </div>
             <div className="flex gap-2">
-              {integration.provider === "github" && !integration.connected && (
-                <Button onClick={connectGithub} disabled={busy === "github"}>
-                  {busy === "github" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Connect
+              {(integration.provider === "github" || integration.provider === "google") && !integration.connected && (
+                <Button
+                  onClick={() => connectProvider(integration.provider as "github" | "google")}
+                  disabled={busy === integration.provider}
+                >
+                  {busy === integration.provider && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Connect
+                </Button>
+              )}
+              {integration.provider === "notion" && !integration.connected && (
+                <Button variant="outline" disabled title="Notion browser-safe OAuth UI is not standardized yet">
+                  Connect via existing flow
                 </Button>
               )}
               {integration.connected && (
