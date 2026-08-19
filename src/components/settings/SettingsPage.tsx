@@ -10,6 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import GlassCard from "@/components/ui/GlassCard";
 import MCPConnectionsPanel from "@/components/settings/MCPConnectionsPanel";
+import DebugSessionPanel from "@/components/settings/DebugSessionPanel";
 import {
   ArrowLeft,
   Bell,
@@ -30,18 +31,15 @@ const SettingsPage: React.FC = () => {
   const { toast } = useToast();
   const { theme, toggleTheme } = useTheme();
 
-  // User settings state
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [notifications, setNotifications] = useState(true);
   const [language, setLanguage] = useState("English");
 
-  // OAuth callbacks can land directly on the integrations section.
   const requestedSection = new URLSearchParams(window.location.search).get("section");
   const [activeSection, setActiveSection] = useState(requestedSection || "account");
 
   const handleSaveSettings = () => {
-    // In a real app, this would save to backend
     toast({
       title: "Settings saved",
       description: "Your preferences have been updated.",
@@ -71,30 +69,18 @@ const SettingsPage: React.FC = () => {
 
       <div className="p-4 md:p-6 max-w-7xl mx-auto">
         <div className="flex items-center mb-8">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/dashboard")}
-            className="mr-4"
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="mr-4">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="text-2xl font-medium">Settings</h1>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Settings sidebar */}
-          <motion.div
-            variants={fadeIn}
-            initial="hidden"
-            animate="visible"
-            className="md:col-span-1"
-          >
+          <motion.div variants={fadeIn} initial="hidden" animate="visible" className="md:col-span-1">
             <GlassCard className="overflow-hidden p-0">
               <div className="p-4 border-b border-white/10">
                 <div className="font-medium">Settings</div>
               </div>
-
               <div className="p-2">
                 {sectionItems.map((item) => (
                   <Button
@@ -111,44 +97,21 @@ const SettingsPage: React.FC = () => {
             </GlassCard>
           </motion.div>
 
-          {/* Settings content */}
-          <motion.div
-            variants={slideUp}
-            initial="hidden"
-            animate="visible"
-            className="md:col-span-3"
-          >
+          <motion.div variants={slideUp} initial="hidden" animate="visible" className="md:col-span-3">
             <GlassCard>
               {activeSection === "account" && (
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  animate="visible"
-                  className="space-y-6"
-                >
+                <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
                   <h2 className="text-xl font-medium mb-4">Account Settings</h2>
-
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <label className="block text-sm text-muted-foreground">Name</label>
-                      <Input
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Your name"
-                      />
+                      <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
                     </div>
-
                     <div className="space-y-2">
                       <label className="block text-sm text-muted-foreground">Email</label>
-                      <Input
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Your email"
-                        type="email"
-                      />
+                      <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your email" type="email" />
                     </div>
                   </div>
-
                   <div className="pt-4 border-t border-white/10">
                     <Button variant="destructive" className="flex items-center">
                       <Trash2 className="w-4 h-4 mr-2" /> Delete Account
@@ -158,14 +121,8 @@ const SettingsPage: React.FC = () => {
               )}
 
               {activeSection === "appearance" && (
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  animate="visible"
-                  className="space-y-6"
-                >
+                <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
                   <h2 className="text-xl font-medium mb-4">Appearance</h2>
-
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium">Dark Mode</div>
@@ -179,14 +136,8 @@ const SettingsPage: React.FC = () => {
               )}
 
               {activeSection === "notifications" && (
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  animate="visible"
-                  className="space-y-6"
-                >
+                <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
                   <h2 className="text-xl font-medium mb-4">Notifications</h2>
-
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium">Enable Notifications</div>
@@ -200,19 +151,14 @@ const SettingsPage: React.FC = () => {
               {activeSection === "integrations" && <MCPConnectionsPanel />}
 
               {activeSection === "privacy" && (
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  animate="visible"
-                  className="space-y-6"
-                >
+                <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
                   <h2 className="text-xl font-medium mb-4">Privacy & Security</h2>
-
                   <div className="space-y-4">
                     <Button variant="outline">Change Password</Button>
+                    <DebugSessionPanel />
                     <div className="pt-4 border-t border-white/10">
                       <div className="text-sm text-muted-foreground mb-2">
-                        Your data is encrypted and securely stored. We never share your information with third parties.
+                        Sensitive form inputs are masked in optional session replay. Debug telemetry is used for product reliability and is never treated as authentication or approval.
                       </div>
                     </div>
                   </div>
@@ -220,14 +166,8 @@ const SettingsPage: React.FC = () => {
               )}
 
               {activeSection === "language" && (
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  animate="visible"
-                  className="space-y-6"
-                >
+                <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
                   <h2 className="text-xl font-medium mb-4">Language & Region</h2>
-
                   <div className="space-y-2">
                     <label className="block text-sm text-muted-foreground">Language</label>
                     <select
@@ -246,24 +186,15 @@ const SettingsPage: React.FC = () => {
               )}
 
               {activeSection === "about" && (
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  animate="visible"
-                  className="space-y-6"
-                >
+                <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
                   <h2 className="text-xl font-medium mb-4">About</h2>
-
                   <div className="space-y-4">
                     <div>
                       <h3 className="font-medium">AI Schedule Assistant</h3>
                       <div className="text-sm text-muted-foreground">Version 1.0.0</div>
                     </div>
-
                     <div className="pt-4 border-t border-white/10">
-                      <div className="text-sm text-muted-foreground">
-                        © 2025 AI Schedule Assistant. All rights reserved.
-                      </div>
+                      <div className="text-sm text-muted-foreground">© 2025 AI Schedule Assistant. All rights reserved.</div>
                     </div>
                   </div>
                 </motion.div>
